@@ -36,6 +36,10 @@ signed int (__cdecl * _imp____time32)(signed int*) = __time32;
 signed int (__cdecl * __imp___time32)(signed int*) = __time32;
 signed int (__cdecl * __imp____time32)(signed int*) = __time32;
 
+#ifdef __GNUC__
+void _pei386_runtime_relocator(void) {}
+#endif
+
 #ifdef __LEGACY_CRT_CRT_IS_DLL
 extern int __stdcall DllMain(void* hinstDLL, unsigned long fdwReason, void* lpReserved);
 int __stdcall DllMainCRTStartup(void* hinstDLL, unsigned long fdwReason, void* lpReserved) {    
