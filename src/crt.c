@@ -61,7 +61,7 @@ int _fltused = 1;
 #if defined(__i386) || defined(__i386__) || defined(_M_IX86)
 extern __declspec(dllimport) signed int time(signed int *second);
 signed int __cdecl __time32(signed int *second) {  return time(second); }
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER > 1200
 signed int (__cdecl * my_imp_time32)(signed int*) = __time32;
 #pragma comment(linker, "/include:_my_imp_time32")
 #pragma comment(linker, "/alternatename:__imp___time32=_my_imp_time32")
@@ -72,7 +72,7 @@ signed int (__cdecl * CRT_USED _imp___time32)(signed int*) = __time32;
 signed int (__cdecl * CRT_USED _imp____time32)(signed int*) = __time32;
 signed int (__cdecl * CRT_USED __imp___time32)(signed int*) = __time32;
 signed int (__cdecl * CRT_USED __imp____time32)(signed int*) = __time32;
-#endif /* _MSC_VER */
+#endif /* defined(_MSC_VER) && _MSC_VER > 1200 */
 #ifdef __GNUC__
 void CRT_USED _pei386_runtime_relocator(void) {}
 #endif /* __GNUC__ */
