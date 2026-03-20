@@ -1,3 +1,8 @@
+#ifdef __GNUC__
+#define CRT_USED __attribute__((used))
+#else
+#define CRT_USED
+#endif
 #ifdef __LEGACY_CRT_CONSOLE_SUBSYSTEM
 #if !defined (_MSC_VER) || _MSC_VER > 1200
 #ifndef _FILE_DEFINED
@@ -15,31 +20,63 @@ typedef struct _iobuf {
 #endif /* _FILE_DEFINED */
 extern __declspec(dllimport) FILE _iob[];
 FILE* __cdecl __iob_func(void) { return _iob; }
-FILE* (__cdecl * _imp___iob_func)(void) = __iob_func;
-FILE* (__cdecl * _imp____iob_func)(void) = __iob_func;
-FILE* (__cdecl * __imp___iob_func)(void) = __iob_func;
-FILE* (__cdecl * __imp____iob_func)(void) = __iob_func;
 FILE* __cdecl __acrt_iob_func(unsigned i) { return _iob + i; }
-FILE* (__cdecl * _imp___acrt_iob_func)(unsigned) = __acrt_iob_func;
-FILE* (__cdecl * _imp____acrt_iob_func)(unsigned) = __acrt_iob_func;
-FILE* (__cdecl * __imp___acrt_iob_func)(unsigned) = __acrt_iob_func;
-FILE* (__cdecl * __imp____acrt_iob_func)(unsigned) = __acrt_iob_func;
+FILE* (__cdecl * my_imp_iob_func)(void) = __iob_func;
+FILE* (__cdecl * my_imp_acrt_iob_func)(unsigned) = __acrt_iob_func;
+#ifdef _MSC_VER
+#if defined(__i386) || defined(__i386__) || defined(_M_IX86)
+#pragma comment(linker, "/include:_my_imp_iob_func")
+#pragma comment(linker, "/alternatename:__imp___iob_func=_my_imp_iob_func")
+#pragma comment(linker, "/alternatename:__imp____iob_func=_my_imp_iob_func")
+#pragma comment(linker, "/alternatename:___imp___iob_func=_my_imp_iob_func")
+#pragma comment(linker, "/include:_my_imp_acrt_iob_func")
+#pragma comment(linker, "/alternatename:__imp___acrt_iob_func=_my_imp_acrt_iob_func")
+#pragma comment(linker, "/alternatename:__imp____acrt_iob_func=_my_imp_acrt_iob_func")
+#pragma comment(linker, "/alternatename:___imp___acrt_iob_func=_my_imp_acrt_iob_func")
+#else
+#pragma comment(linker, "/include:my_imp_iob_func")
+#pragma comment(linker, "/alternatename:__imp___iob_func=my_imp_iob_func")
+#pragma comment(linker, "/alternatename:__imp____iob_func=my_imp_iob_func")
+#pragma comment(linker, "/alternatename:___imp___iob_func=my_imp_iob_func")
+#pragma comment(linker, "/include:my_imp_acrt_iob_func")
+#pragma comment(linker, "/alternatename:__imp___acrt_iob_func=my_imp_acrt_iob_func")
+#pragma comment(linker, "/alternatename:__imp____acrt_iob_func=my_imp_acrt_iob_func")
+#pragma comment(linker, "/alternatename:___imp___acrt_iob_func=my_imp_acrt_iob_func")
+#endif
+#else /* _MSC_VER */
+FILE* (__cdecl * CRT_USED _imp___iob_func)(void) = __iob_func;
+FILE* (__cdecl * CRT_USED _imp____iob_func)(void) = __iob_func;
+FILE* (__cdecl * CRT_USED __imp___iob_func)(void) = __iob_func;
+FILE* (__cdecl * CRT_USED __imp____iob_func)(void) = __iob_func;
+FILE* (__cdecl * CRT_USED _imp___acrt_iob_func)(unsigned) = __acrt_iob_func;
+FILE* (__cdecl * CRT_USED _imp____acrt_iob_func)(unsigned) = __acrt_iob_func;
+FILE* (__cdecl * CRT_USED __imp___acrt_iob_func)(unsigned) = __acrt_iob_func;
+FILE* (__cdecl * CRT_USED __imp____acrt_iob_func)(unsigned) = __acrt_iob_func;
+#endif /* _MSC_VER */
 #endif /* !defined (_MSC_VER) || _MSC_VER > 1200 */
 #endif /* __LEGACY_CRT_CONSOLE_SUBSYSTEM */
 #ifdef _MSC_VER
 int _fltused = 1;
 #endif /* _MSC_VER */
+#if defined(__i386) || defined(__i386__) || defined(_M_IX86)
 extern __declspec(dllimport) signed int time(signed int *second);
 signed int __cdecl __time32(signed int *second) {  return time(second); }
-signed int (__cdecl * _imp___time32)(signed int*) = __time32;
-signed int (__cdecl * _imp____time32)(signed int*) = __time32;
-signed int (__cdecl * __imp___time32)(signed int*) = __time32;
-signed int (__cdecl * __imp____time32)(signed int*) = __time32;
-
+#ifdef _MSC_VER
+signed int (__cdecl * my_imp_time32)(signed int*) = __time32;
+#pragma comment(linker, "/include:_my_imp_time32")
+#pragma comment(linker, "/alternatename:__imp___time32=_my_imp_time32")
+#pragma comment(linker, "/alternatename:__imp____time32=_my_imp_time32")
+#pragma comment(linker, "/alternatename:___imp___time32=_my_imp_time32")
+#else /* _MSC_VER */
+signed int (__cdecl * CRT_USED _imp___time32)(signed int*) = __time32;
+signed int (__cdecl * CRT_USED _imp____time32)(signed int*) = __time32;
+signed int (__cdecl * CRT_USED __imp___time32)(signed int*) = __time32;
+signed int (__cdecl * CRT_USED __imp____time32)(signed int*) = __time32;
+#endif /* _MSC_VER */
 #ifdef __GNUC__
-void _pei386_runtime_relocator(void) {}
-#endif
-
+void CRT_USED _pei386_runtime_relocator(void) {}
+#endif /* __GNUC__ */
+#endif /* defined(__i386) || defined(__i386__) || defined(_M_IX86) */
 #ifdef __LEGACY_CRT_CRT_IS_DLL
 extern int __stdcall DllMain(void* hinstDLL, unsigned long fdwReason, void* lpReserved);
 int __stdcall DllMainCRTStartup(void* hinstDLL, unsigned long fdwReason, void* lpReserved) {    
@@ -58,7 +95,7 @@ extern __declspec(dllimport) void __declspec(noreturn) _exit(int status);
 #ifdef __LEGACY_CRT_CONSOLE_SUBSYSTEM
 int main(int argc, char* argv[]);
 #ifdef __GNUC__
-void __main(void) {}
+void CRT_USED __main(void) {}
 #endif /* __GNUC__ */
 
 void __cdecl mainCRTStartup(void) {

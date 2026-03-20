@@ -417,6 +417,8 @@ EXPORTS
 	_telli64
 	_tempnam
 	_timezone
+	_time32
+	_time64
 	_tolower
 	_toupper
 	_tzname
