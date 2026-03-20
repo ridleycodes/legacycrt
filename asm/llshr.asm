@@ -2,13 +2,13 @@
 .model flat
 .code
 
-public _allshr
+public __allshr
 
 ;***
 ;llshr - long shift right
 ;*******************************************************************************
 
-_allshr PROC NEAR
+__allshr PROC NEAR
 
 ; Handle shifts of 64 bits or more
         cmp     cl,64
@@ -35,6 +35,6 @@ RETSIGN:
         mov     eax,edx
         ret
 
-_allshr ENDP
+__allshr ENDP
 
 end

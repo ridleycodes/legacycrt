@@ -3,13 +3,13 @@
 
 .code
 
-public _alldiv
+public __alldiv
 
 ;***
 ;lldiv - signed long divide
 ;*******************************************************************************
 
-_alldiv PROC NEAR
+__alldiv PROC NEAR
 
         push    edi
         push    esi
@@ -111,6 +111,6 @@ L8:
 
         ret     16
 
-_alldiv ENDP
+__alldiv ENDP
 
 end

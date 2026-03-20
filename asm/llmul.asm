@@ -2,13 +2,13 @@
 .model flat
 .code
 
-public _allmul
+public __allmul
 
 ;***
 ;llmul - long multiply routine
 ;*******************************************************************************
 
-_allmul PROC NEAR
+__allmul PROC NEAR
 
 A_LO    EQU     [esp + 4]       
 A_HI    EQU     [esp + 8]       
@@ -48,6 +48,6 @@ B2_HI   EQU     [esp + 20]
 
         ret     16              
 
-_allmul ENDP
+__allmul ENDP
 
 end

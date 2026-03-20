@@ -2,13 +2,13 @@
 .model flat
 .code
 
-public _allrem
+public __allrem
 
 ;***
 ;llrem - signed long remainder
 ;*******************************************************************************
 
-_allrem PROC NEAR
+__allrem PROC NEAR
 
         push    ebx
         push    edi
@@ -101,6 +101,6 @@ L8:
 
         ret     16
 
-_allrem ENDP
+__allrem ENDP
 
 end

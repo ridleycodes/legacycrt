@@ -2,13 +2,13 @@
 .model flat
 .code
 
-public _alldvrm
+public __alldvrm
 
 ;***
 ;lldvrm - signed long divide and remainder
 ;*******************************************************************************
 
-_alldvrm PROC NEAR
+__alldvrm PROC NEAR
 
         push    edi
         push    esi
@@ -128,6 +128,6 @@ L8:
 
         ret     16
 
-_alldvrm ENDP
+__alldvrm ENDP
 
 end

@@ -2,13 +2,13 @@
 .model flat
 .code
 
-public _allshl
+public __allshl
 
 ;***
 ;llshl - long shift left
 ;*******************************************************************************
 
-_allshl PROC NEAR
+__allshl PROC NEAR
 
 ; Handle shifts of 64 or more bits (all get 0)
         cmp     cl, 64
@@ -35,6 +35,6 @@ RETZERO:
         xor     edx,edx
         ret
 
-_allshl ENDP
+__allshl ENDP
 
 end
