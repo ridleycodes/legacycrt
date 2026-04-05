@@ -93,7 +93,11 @@ void CRT_USED __wmain(void) {}
 #endif /* __GNUC__ */
 #ifndef __LEGACY_CRT_USE_OLD_CRT
 extern __declspec(dllimport) int __cdecl __wgetmainargs(int *argc, wchar_t ***argv, wchar_t ***env, int dowildcard, int *startupinfo);
+#ifdef __GNUC__
+void __cdecl mainCRTStartup(void) {
+#else
 void __cdecl wmainCRTStartup(void) {
+#endif /* __GNUC__ */
     int argc;
     wchar_t** argv;
     wchar_t** envp;
@@ -110,8 +114,11 @@ void __cdecl wmainCRTStartup(void) {
 extern __declspec(dllimport) wchar_t* __stdcall GetCommandLineW(void);
 extern __declspec(dllimport) wchar_t** __stdcall CommandLineToArgvW(const wchar_t* lpCmdLine, int* pNumArgs);
 extern __declspec(dllimport) void* __stdcall LocalFree(void* hMem);
-
+#ifdef __GNUC__
+void __cdecl mainCRTStartup(void) {
+#else
 void __cdecl wmainCRTStartup(void) {
+#endif /* __GNUC__ */
     int argc;
     wchar_t** argv;
     int err;
@@ -136,7 +143,6 @@ extern __declspec(dllimport) void __cdecl __GetMainArgs(int *argc, char ***argv,
 extern __declspec(dllimport) int __cdecl __getmainargs(int *argc, char ***argv, char ***env, int dowildcard, int *startupinfo);
 #define MAINARGS_CALL(argc, argv, envp, wild, startup) __getmainargs(argc, argv, envp, wild, startup)
 #endif /* __LEGACY_CRT_USE_OLD_CRT */
-
 void __cdecl mainCRTStartup(void) {
     int argc;
     char** argv;
@@ -157,8 +163,11 @@ extern __declspec(dllimport) void* __stdcall GetModuleHandleW(const wchar_t* lpM
 extern __declspec(dllimport) wchar_t* __stdcall GetCommandLineW(void);
 extern __declspec(dllimport) void __stdcall GetStartupInfoW(void* lpStartupInfo);
 extern __declspec(dllimport) void __stdcall ExitProcess(unsigned int status);
-
+#ifdef __GNUC__
+void __cdecl WinMainCRTStartup(void) {
+#else /* __GNUC__ */
 void __cdecl wWinMainCRTStartup(void) {
+#endif /* __GNUC__ */
     void* hInstance;
     wchar_t* lpszCommandLine;
     int nShowCmd;
