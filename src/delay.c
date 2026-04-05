@@ -30,7 +30,7 @@ typedef struct _IMAGE_THUNK_DATA {
     } u1;
 } IMAGE_THUNK_DATA;
 #define IMAGE_SNAP_BY_ORDINAL(Ordinal) ((Ordinal & 0x80000000) != 0)
-typedef unsigned __int64 ULONG_PTR;
+typedef unsigned long ULONG_PTR;
 #else /* defined(__i386) || defined(__i386__) || defined(_M_IX86) */
 typedef struct _IMAGE_THUNK_DATA {
     union {
@@ -41,7 +41,7 @@ typedef struct _IMAGE_THUNK_DATA {
     } u1;
 } IMAGE_THUNK_DATA;
 #define IMAGE_SNAP_BY_ORDINAL(Ordinal) ((Ordinal & 0x8000000000000000) != 0)
-typedef unsigned long ULONG_PTR;
+typedef unsigned __int64 ULONG_PTR;
 #endif /* defined(__i386) || defined(__i386__) || defined(_M_IX86) */
 
 #if defined(_MSC_VER) && _MSC_VER <= 1300
@@ -73,7 +73,7 @@ typedef struct DelayLoadProc {
     union {
         const char *szProcName;
         unsigned long dwOrdinal;
-        };
+    } u1;
 } DelayLoadProc;
 
 typedef struct DelayLoadInfo {
@@ -144,9 +144,9 @@ int * __stdcall __delayLoadHelper2(const ImgDelayDescr *pidd, IMAGE_THUNK_DATA *
         /* u1.AddressOfData points to a IMAGE_IMPORT_BY_NAME struct */
         IMAGE_IMPORT_BY_NAME *piibn = ((IMAGE_IMPORT_BY_NAME*) (((ULONG_PTR) (pINT[index].u1.AddressOfData)) + ((ULONG_PTR) &__ImageBase)));
 #endif /* defined(_MSC_VER) && _MSC_VER <= 1300 */
-        dli.dlp.szProcName = (const char*) &piibn->Name;
+        dli.dlp.u1.szProcName = (const char*) &piibn->Name;
     } else {
-        dli.dlp.dwOrdinal = pINT[index].u1.Ordinal & 0xffff;
+        dli.dlp.u1.dwOrdinal = pINT[index].u1.Ordinal & 0xffff;
     }
 
     dli.cb = sizeof(dli);
@@ -180,7 +180,8 @@ int * __stdcall __delayLoadHelper2(const ImgDelayDescr *pidd, IMAGE_THUNK_DATA *
 
                 if (dli.hmodCur == 0)
                 {
-                    ULONG_PTR args[] = { (ULONG_PTR) &dli };
+                    ULONG_PTR args[1];
+                    args[0] = (ULONG_PTR)&dli;
                     RaiseException(0xC06D007E, 0, 1, args);
                     return dli.pfnCur; /* handled */
                 }
@@ -196,7 +197,7 @@ int * __stdcall __delayLoadHelper2(const ImgDelayDescr *pidd, IMAGE_THUNK_DATA *
     if (dli.pfnCur == 0)
     {
         /* ordinal */
-        dli.pfnCur = GetProcAddress(dli.hmodCur, dli.dlp.szProcName);
+        dli.pfnCur = GetProcAddress(dli.hmodCur, dli.dlp.u1.szProcName);
         if (dli.pfnCur == 0)
         {
             dli.dwLastError = GetLastError();
@@ -205,7 +206,8 @@ int * __stdcall __delayLoadHelper2(const ImgDelayDescr *pidd, IMAGE_THUNK_DATA *
 
             if (dli.pfnCur == 0)
             {
-                ULONG_PTR args[] = { (ULONG_PTR)&dli };
+                ULONG_PTR args[1];
+                args[0] = (ULONG_PTR)&dli;
                 RaiseException(0xC06D007F, 0, 1, args);
             }
          }

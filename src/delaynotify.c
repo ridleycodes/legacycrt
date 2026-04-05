@@ -47,7 +47,7 @@ typedef struct DelayLoadProc {
     union {
         const char *szProcName;
         unsigned long dwOrdinal;
-        };
+    } u1;
 } DelayLoadProc;
 
 typedef struct DelayLoadInfo {
@@ -63,7 +63,7 @@ typedef struct DelayLoadInfo {
 
 typedef int* (__stdcall *PfnDliHook)(unsigned dliNotify, DelayLoadInfo *pdli);
 #if defined(_MSC_VER) && _MSC_VER <= 1300
-PfnDliHook __pfnDliNotifyHook2 = NULL;
+PfnDliHook __pfnDliNotifyHook2 = 0;
 #else /* defined(_MSC_VER) && _MSC_VER <= 1300 */
-PfnDliHook __pfnDliNotifyHook = NULL;
+PfnDliHook __pfnDliNotifyHook = 0;
 #endif /* defined(_MSC_VER) && _MSC_VER <= 1300 */
