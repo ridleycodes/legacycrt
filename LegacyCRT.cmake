@@ -173,6 +173,12 @@ FUNCTION(__LEGACY_CRT_ADD_CRT_LIBRARY CRT_SRC_LOCATION)
         MSVC_RUNTIME_CHECKS ""
     )
     ADD_DEPENDENCIES(legacy_crt_library legacy_crt_library_std)
+    ADD_LIBRARY(legacy_crt_library_delay STATIC "${CRT_SRC_LOCATION}/delay.c" "${CRT_SRC_LOCATION}/delayfail.c" "${CRT_SRC_LOCATION}/delaynotify.c")
+    SET_TARGET_PROPERTIES(legacy_crt_library_delay PROPERTIES
+        COMPILE_FLAGS "${_CF}"
+        MSVC_RUNTIME_CHECKS ""
+    )
+    ADD_DEPENDENCIES(legacy_crt_library legacy_crt_library_delay)
 ENDFUNCTION(__LEGACY_CRT_ADD_CRT_LIBRARY)
 
 MACRO(ADD_LEGACY_CRT CRT_LOCATION)
@@ -239,7 +245,7 @@ FUNCTION(ADD_LEGACY_CRT_EXECUTABLE EXECUTABLE_NAME IS_CONSOLE ...)
     )
     ADD_DEPENDENCIES(${EXECUTABLE_NAME} legacy_crt_library)
     GET_TARGET_PROPERTY(CRT_LIB legacy_crt_library CRT_LIB)
-    TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} legacy_crt_library_std "${CRT_LIB}")
+    TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} legacy_crt_library_std legacy_crt_library_delay "${CRT_LIB}")
     TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} kernel32 shell32)
 
     IF(MSVC AND NOT (CMAKE_C_COMPILER_ID MATCHES "Clang" OR MSVC_VERSION LESS 1600) AND TARGET_ARCH STREQUAL "X86")
@@ -274,7 +280,7 @@ FUNCTION(ADD_LEGACY_CRT_DLL DLL_NAME IS_CONSOLE ...)
 
     ADD_DEPENDENCIES(${DLL_NAME} legacy_crt_library)
     GET_TARGET_PROPERTY(CRT_LIB legacy_crt_library CRT_LIB)
-    TARGET_LINK_LIBRARIES(${DLL_NAME} legacy_crt_library_std "${CRT_LIB}")
+    TARGET_LINK_LIBRARIES(${DLL_NAME} legacy_crt_library_std legacy_crt_library_delay "${CRT_LIB}")
 ENDFUNCTION(ADD_LEGACY_CRT_DLL)
 
 FUNCTION(ADD_LEGACY_CRT_LIBRARY LIBRARY_NAME IS_CONSOLE ...)
@@ -291,5 +297,5 @@ FUNCTION(ADD_LEGACY_CRT_LIBRARY LIBRARY_NAME IS_CONSOLE ...)
 
     ADD_DEPENDENCIES(${LIBRARY_NAME} legacy_crt_library)
     GET_TARGET_PROPERTY(CRT_LIB legacy_crt_library CRT_LIB)
-    TARGET_LINK_LIBRARIES(${LIBRARY_NAME} legacy_crt_library_std "${CRT_LIB}")
+    TARGET_LINK_LIBRARIES(${LIBRARY_NAME} legacy_crt_library_std legacy_crt_library_delay "${CRT_LIB}")
 ENDFUNCTION(ADD_LEGACY_CRT_LIBRARY)
