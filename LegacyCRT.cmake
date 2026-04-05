@@ -152,6 +152,27 @@ FUNCTION(__LEGACY_CRT_ADD_CRT_LIBRARY CRT_SRC_LOCATION)
     SET_TARGET_PROPERTIES(legacy_crt_library PROPERTIES
         CRT_LOC            "${CRT_SRC_LOCATION}"
         CRT_LIB             "${CRT_LIB}")
+
+    ### Add STD Lib
+    IF(TARGET_ARCH STREQUAL "X86")
+        IF(MSVC)
+            SET(CRT_MATH "${CRT_SRC_LOCATION}/lldiv.obj" 
+                         "${CRT_SRC_LOCATION}/lldvrm.obj" 
+                         "${CRT_SRC_LOCATION}/llmul.obj" 
+                         "${CRT_SRC_LOCATION}/llrem.obj" 
+                         "${CRT_SRC_LOCATION}/llshl.obj"
+                         "${CRT_SRC_LOCATION}/llshr.obj")
+        ELSE(MSVC)
+            SET(CRT_MATH "${CRT_SRC_LOCATION}/gccmath.c")
+        ENDIF(MSVC)
+    ENDIF(TARGET_ARCH STREQUAL "X86")
+    ADD_LIBRARY(legacy_crt_library_std STATIC "${CRT_SRC_LOCATION}/std.c" ${CRT_MATH})
+    __LEGACY_CRT_GET_FLAGS(_CF _LF OFF ON OFF)
+    SET_TARGET_PROPERTIES(legacy_crt_library_std PROPERTIES
+        COMPILE_FLAGS "${_CF}"
+        MSVC_RUNTIME_CHECKS ""
+    )
+    ADD_DEPENDENCIES(legacy_crt_library legacy_crt_library_std)
 ENDFUNCTION(__LEGACY_CRT_ADD_CRT_LIBRARY)
 
 MACRO(ADD_LEGACY_CRT CRT_LOCATION)
@@ -208,15 +229,7 @@ FUNCTION(ADD_LEGACY_CRT_EXECUTABLE EXECUTABLE_NAME IS_CONSOLE ...)
     LIST(REMOVE_AT _SRC 0 1)
     GET_TARGET_PROPERTY(_CRT legacy_crt_library CRT_LOC)
     SET(_CXM "")
-    IF(TARGET_ARCH STREQUAL "X86")
-        IF(MSVC)
-            SET(_CXM "${_CRT}/lldiv.obj" "${_CRT}/lldvrm.obj" "${_CRT}/llmul.obj" "${_CRT}/llrem.obj" "${_CRT}/llshl.obj" "${_CRT}/llshr.obj")
-        ELSE(MSVC)
-            SET(_CXM "${_CRT}/gccmath.c")
-        ENDIF(MSVC)
-    ENDIF(TARGET_ARCH STREQUAL "X86")
-    ADD_EXECUTABLE(${EXECUTABLE_NAME} WIN32 "${_CRT}/crt.c" 
-                   ${_CXM}  
+    ADD_EXECUTABLE(${EXECUTABLE_NAME} WIN32 "${_CRT}/entry.c" 
                    ${_SRC})
     __LEGACY_CRT_GET_FLAGS(_CF _LF OFF ${IS_CONSOLE} ON)
     SET_TARGET_PROPERTIES(${EXECUTABLE_NAME} PROPERTIES
@@ -226,7 +239,7 @@ FUNCTION(ADD_LEGACY_CRT_EXECUTABLE EXECUTABLE_NAME IS_CONSOLE ...)
     )
     ADD_DEPENDENCIES(${EXECUTABLE_NAME} legacy_crt_library)
     GET_TARGET_PROPERTY(CRT_LIB legacy_crt_library CRT_LIB)
-    TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} "${CRT_LIB}")
+    TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} legacy_crt_library_std "${CRT_LIB}")
     TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} kernel32 shell32)
 
     IF(MSVC AND NOT (CMAKE_C_COMPILER_ID MATCHES "Clang" OR MSVC_VERSION LESS 1600) AND TARGET_ARCH STREQUAL "X86")
@@ -250,16 +263,7 @@ FUNCTION(ADD_LEGACY_CRT_DLL DLL_NAME IS_CONSOLE ...)
     SET(_SRC ${ARGV})
     LIST(REMOVE_AT _SRC 0 1)
     GET_TARGET_PROPERTY(_CRT legacy_crt_library CRT_LOC)
-    SET(_CXM "")
-    IF(TARGET_ARCH STREQUAL "X86")
-        IF(MSVC)
-            SET(_CXM "${_CRT}/lldiv.obj" "${_CRT}/lldvrm.obj" "${_CRT}/llmul.obj" "${_CRT}/llrem.obj" "${_CRT}/llshl.obj" "${_CRT}/llshr.obj")
-        ELSE(MSVC)
-            SET(_CXM "${_CRT}/gccmath.c")
-        ENDIF(MSVC)
-    ENDIF(TARGET_ARCH STREQUAL "X86")
-    ADD_LIBRARY(${DLL_NAME} SHARED "${_CRT}/crt.c" 
-                ${_CXM} 
+    ADD_LIBRARY(${DLL_NAME} SHARED "${_CRT}/entry.c" 
                 ${_SRC})
     __LEGACY_CRT_GET_FLAGS(_CF _LF ON ${IS_CONSOLE} ON)
     SET_TARGET_PROPERTIES(${DLL_NAME} PROPERTIES
@@ -270,23 +274,14 @@ FUNCTION(ADD_LEGACY_CRT_DLL DLL_NAME IS_CONSOLE ...)
 
     ADD_DEPENDENCIES(${DLL_NAME} legacy_crt_library)
     GET_TARGET_PROPERTY(CRT_LIB legacy_crt_library CRT_LIB)
-    TARGET_LINK_LIBRARIES(${DLL_NAME} "${CRT_LIB}")
+    TARGET_LINK_LIBRARIES(${DLL_NAME} legacy_crt_library_std "${CRT_LIB}")
 ENDFUNCTION(ADD_LEGACY_CRT_DLL)
 
 FUNCTION(ADD_LEGACY_CRT_LIBRARY LIBRARY_NAME IS_CONSOLE ...)
     SET(_SRC ${ARGV})
     LIST(REMOVE_AT _SRC 0 1)
     GET_TARGET_PROPERTY(_CRT legacy_crt_library CRT_LOC)
-    SET(_CXM "")
-    IF(TARGET_ARCH STREQUAL "X86")
-        IF(MSVC)
-            SET(_CXM "${_CRT}/lldiv.obj" "${_CRT}/lldvrm.obj" "${_CRT}/llmul.obj" "${_CRT}/llrem.obj" "${_CRT}/llshl.obj" "${_CRT}/llshr.obj")
-        ELSE(MSVC)
-            SET(_CXM "${_CRT}/gccmath.c")
-        ENDIF(MSVC)
-    ENDIF(TARGET_ARCH STREQUAL "X86")
     ADD_LIBRARY(${LIBRARY_NAME} STATIC
-                ${_CXM} 
                 ${_SRC})
     __LEGACY_CRT_GET_FLAGS(_CF _LF OFF ${IS_CONSOLE} OFF)
     SET_TARGET_PROPERTIES(${LIBRARY_NAME} PROPERTIES
@@ -296,5 +291,5 @@ FUNCTION(ADD_LEGACY_CRT_LIBRARY LIBRARY_NAME IS_CONSOLE ...)
 
     ADD_DEPENDENCIES(${LIBRARY_NAME} legacy_crt_library)
     GET_TARGET_PROPERTY(CRT_LIB legacy_crt_library CRT_LIB)
-    TARGET_LINK_LIBRARIES(${LIBRARY_NAME} "${CRT_LIB}")
+    TARGET_LINK_LIBRARIES(${LIBRARY_NAME} legacy_crt_library_std "${CRT_LIB}")
 ENDFUNCTION(ADD_LEGACY_CRT_LIBRARY)

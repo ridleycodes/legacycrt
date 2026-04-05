@@ -17,12 +17,6 @@
 // This software is released as-is into the public domain, as described at
 // https://unlicense.org. Do whatever you like with it.
 
-#ifdef __GNUC__
-#define CRT_USED __attribute__((used))
-#else
-#define CRT_USED
-#endif
-
 #define arith64_u64 unsigned long long int
 #define arith64_s64 signed long long int
 #define arith64_u32 unsigned int
@@ -60,13 +54,13 @@ typedef union
 
 // Return the absolute value of a.
 // Note LLINT_MIN cannot be negated.
-arith64_s64 CRT_USED __absvdi2(arith64_s64 a)
+arith64_s64 __absvdi2(arith64_s64 a)
 {
     return arith64_abs(a);
 }
 
 // Return the result of shifting a left by b bits.
-arith64_s64 CRT_USED __ashldi3(arith64_s64 a, int b)
+arith64_s64 __ashldi3(arith64_s64 a, int b)
 {
     arith64_word w = {.s64 = a};
 
@@ -85,7 +79,7 @@ arith64_s64 CRT_USED __ashldi3(arith64_s64 a, int b)
 }
 
 // Return the result of arithmetically shifting a right by b bits.
-arith64_s64 CRT_USED __ashrdi3(arith64_s64 a, int b)
+arith64_s64 __ashrdi3(arith64_s64 a, int b)
 {
     arith64_word w = {.s64 = a};
 
@@ -105,7 +99,7 @@ arith64_s64 CRT_USED __ashrdi3(arith64_s64 a, int b)
 
 // These functions return the number of leading 0-bits in a, starting at the
 // most significant bit position. If a is zero, the result is undefined.
-int CRT_USED __clzsi2(arith64_u32 a)
+int __clzsi2(arith64_u32 a)
 {
     int b, n = 0;
     b = !(a & 0xffff0000) << 4; n += b; a <<= b;
@@ -115,7 +109,7 @@ int CRT_USED __clzsi2(arith64_u32 a)
     return n + !(a & 0x80000000);
 }
 
-int CRT_USED __clzdi2(arith64_u64 a)
+int __clzdi2(arith64_u64 a)
 {
     int b, n = 0;
     b = !(a & 0xffffffff00000000ULL) << 5; n += b; a <<= b;
@@ -128,7 +122,7 @@ int CRT_USED __clzdi2(arith64_u64 a)
 
 // These functions return the number of trailing 0-bits in a, starting at the
 // least significant bit position. If a is zero, the result is undefined.
-int CRT_USED __ctzsi2(arith64_u32 a)
+int __ctzsi2(arith64_u32 a)
 {
     int b, n = 0;
     b = !(a & 0x0000ffff) << 4; n += b; a >>= b;
@@ -138,7 +132,7 @@ int CRT_USED __ctzsi2(arith64_u32 a)
     return n + !(a & 0x00000001);
 }
 
-int CRT_USED __ctzdi2(arith64_u64 a)
+int __ctzdi2(arith64_u64 a)
 {
     int b, n = 0;
     b = !(a & 0x00000000ffffffffULL) << 5; n += b; a >>= b;
@@ -152,7 +146,7 @@ int CRT_USED __ctzdi2(arith64_u64 a)
 // Calculate both the quotient and remainder of the unsigned division of a by
 // b. The return value is the quotient, and the remainder is placed in variable
 // pointed to by c (if it's not NULL).
-arith64_u64 CRT_USED __divmoddi4(arith64_u64 a, arith64_u64 b, arith64_u64 *c)
+arith64_u64 __divmoddi4(arith64_u64 a, arith64_u64 b, arith64_u64 *c)
 {
     if (b > a)                                  // divisor > numerator?
     {
@@ -195,7 +189,7 @@ arith64_u64 CRT_USED __divmoddi4(arith64_u64 a, arith64_u64 b, arith64_u64 *c)
 }
 
 // Return the quotient of the signed division of a by b.
-arith64_s64 CRT_USED __divdi3(arith64_s64 a, arith64_s64 b)
+arith64_s64 __divdi3(arith64_s64 a, arith64_s64 b)
 {
     arith64_u64 q = __divmoddi4(arith64_abs(a), arith64_abs(b), (void *)0);
     return arith64_neg(q, a^b); // negate q if a and b signs are different
@@ -203,13 +197,13 @@ arith64_s64 CRT_USED __divdi3(arith64_s64 a, arith64_s64 b)
 
 // Return the index of the least significant 1-bit in a, or the value zero if a
 // is zero. The least significant bit is index one.
-int CRT_USED __ffsdi2(arith64_u64 a)
+int __ffsdi2(arith64_u64 a)
 {
     return a ? __ctzdi2(a) + 1 : 0;
 }
 
 // Return the result of logically shifting a right by b bits.
-arith64_u64 CRT_USED __lshrdi3(arith64_u64 a, int b)
+arith64_u64 __lshrdi3(arith64_u64 a, int b)
 {
     arith64_word w = {.u64 = a};
 
@@ -228,7 +222,7 @@ arith64_u64 CRT_USED __lshrdi3(arith64_u64 a, int b)
 }
 
 // Return the remainder of the signed division of a by b.
-arith64_s64 CRT_USED __moddi3(arith64_s64 a, arith64_s64 b)
+arith64_s64 __moddi3(arith64_s64 a, arith64_s64 b)
 {
     arith64_u64 r;
     __divmoddi4(arith64_abs(a), arith64_abs(b), &r);
@@ -236,7 +230,7 @@ arith64_s64 CRT_USED __moddi3(arith64_s64 a, arith64_s64 b)
 }
 
 // Return the number of bits set in a.
-int CRT_USED __popcountsi2(arith64_u32 a)
+int __popcountsi2(arith64_u32 a)
 {
     // collect sums into two low bytes
     a = a - ((a >> 1) & 0x55555555);
@@ -248,7 +242,7 @@ int CRT_USED __popcountsi2(arith64_u32 a)
 }
 
 // Return the number of bits set in a.
-int CRT_USED __popcountdi2(arith64_u64 a)
+int __popcountdi2(arith64_u64 a)
 {
     // collect sums into two low bytes
     a = a - ((a >> 1) & 0x5555555555555555ULL);
@@ -261,13 +255,13 @@ int CRT_USED __popcountdi2(arith64_u64 a)
 }
 
 // Return the quotient of the unsigned division of a by b.
-arith64_u64 CRT_USED __udivdi3(arith64_u64 a, arith64_u64 b)
+arith64_u64 __udivdi3(arith64_u64 a, arith64_u64 b)
 {
     return __divmoddi4(a, b, (void *)0);
 }
 
 // Return the remainder of the unsigned division of a by b.
-arith64_u64 CRT_USED __umoddi3(arith64_u64 a, arith64_u64 b)
+arith64_u64 __umoddi3(arith64_u64 a, arith64_u64 b)
 {
     arith64_u64 r;
     __divmoddi4(a, b, &r);
