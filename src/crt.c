@@ -84,6 +84,7 @@ int __stdcall DllMainCRTStartup(void* hinstDLL, unsigned long fdwReason, void* l
     return DllMain(hinstDLL, fdwReason, lpReserved);
 }
 #else /* __LEGACY_CRT_CRT_IS_DLL */
+extern __declspec(dllimport) void __declspec(noreturn) _exit(int status);
 #ifdef __LEGACY_CRT_CONSOLE_SUBSYSTEM
 #if defined(UNICODE) || defined(_UNICODE)
 int wmain(int argc, wchar_t* argv[]);
@@ -135,7 +136,6 @@ extern __declspec(dllimport) void __cdecl __GetMainArgs(int *argc, char ***argv,
 extern __declspec(dllimport) int __cdecl __getmainargs(int *argc, char ***argv, char ***env, int dowildcard, int *startupinfo);
 #define MAINARGS_CALL(argc, argv, envp, wild, startup) __getmainargs(argc, argv, envp, wild, startup)
 #endif /* __LEGACY_CRT_USE_OLD_CRT */
-extern __declspec(dllimport) void __declspec(noreturn) _exit(int status);
 
 void __cdecl mainCRTStartup(void) {
     int argc;
