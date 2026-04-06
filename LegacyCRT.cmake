@@ -154,8 +154,12 @@ FUNCTION(__LEGACY_CRT_ADD_CRT_LIBRARY CRT_SRC_LOCATION)
         CRT_LIB             "${CRT_LIB}")
 
     ### Add STD Lib
+    SET(CRT_SEH "")
     IF(TARGET_ARCH STREQUAL "X86")
         IF(MSVC)
+            IF(LEGACY_CRT_USE_OLD_CRT)
+                SET(CRT_SEH "${CRT_SRC_LOCATION}/seh.obj")
+            ENDIF(LEGACY_CRT_USE_OLD_CRT)
             SET(CRT_MATH "${CRT_SRC_LOCATION}/lldiv.obj" 
                          "${CRT_SRC_LOCATION}/lldvrm.obj" 
                          "${CRT_SRC_LOCATION}/llmul.obj" 
@@ -166,7 +170,7 @@ FUNCTION(__LEGACY_CRT_ADD_CRT_LIBRARY CRT_SRC_LOCATION)
             SET(CRT_MATH "${CRT_SRC_LOCATION}/gccmath.c")
         ENDIF(MSVC)
     ENDIF(TARGET_ARCH STREQUAL "X86")
-    ADD_LIBRARY(legacy_crt_library_std STATIC "${CRT_SRC_LOCATION}/std.c" ${CRT_MATH})
+    ADD_LIBRARY(legacy_crt_library_std STATIC "${CRT_SRC_LOCATION}/std.c" ${CRT_MATH} ${CRT_SEH})
     __LEGACY_CRT_GET_FLAGS(_CF _LF OFF ON OFF)
     SET_TARGET_PROPERTIES(legacy_crt_library_std PROPERTIES
         COMPILE_FLAGS "${_CF}"
