@@ -3,10 +3,6 @@
 EXTERN _RtlUnwind@16:PROC
 EXTERN ___security_cookie:DWORD
 
-PUBLIC __global_unwind2
-PUBLIC __local_unwind2
-PUBLIC __abnormal_termination
-PUBLIC __except_handler2
 PUBLIC __except_handler3
 PUBLIC __except_handler4
 
@@ -157,128 +153,6 @@ unwind_return:
 	pop esi
 	pop ebx
 	ret
-
-
-__except_handler2:
-
-	; Setup stack and save volatiles 
-	push ebp
-	mov ebp, esp
-	sub esp, 8
-	push ebx
-	push esi
-	push edi
-	push ebp
-
-	; Clear direction flag 
-	cld
-
-	; Get exception registration and record 
-	mov ebx, [ebp+12]
-	mov eax, [ebp+8]
-
-	; Check if this is an unwind 
-	test dword ptr [eax+4], 6
-	jnz except_unwind2
-
-	; Save exception pointers structure 
-	mov [ebp-8], eax
-	mov eax, [ebp+16]
-	mov [ebp-4], eax
-	lea eax, [ebp-8]
-	mov [ebx+20], eax
-
-	; Get the try level and scope table 
-	mov esi, [ebx+12]
-	mov edi, [ebx+8]
-
-except_loop2:
-	; Validate try level 
-	cmp esi, -1
-	je except_search2
-
-	; Check if this is the termination handler 
-	lea ecx, [esi+esi*2]
-	cmp dword ptr [edi+ecx*4+4], 0
-	jz except_continue2
-
-	; Save registers and call filter, then restore them 
-	push esi
-	push ebp
-	mov ebp, [ebx+16]
-	call dword ptr [edi+ecx*4+4]
-	pop ebp
-	pop esi
-
-	; Restore ebx and check the result 
-	mov ebx, [ebp+12]
-	or eax, eax
-	jz except_continue2
-	js except_dismiss2
-
-	; So this is an accept, call the termination handlers 
-	mov edi, [ebx+8]
-	push ebx
-	call __global_unwind2
-	add esp, 4
-
-	; Restore ebp 
-	mov ebp, [ebx+16]
-
-	; Do local unwind 
-	push esi
-	push ebx
-	call __local_unwind2
-	add esp, 8
-
-	; Set new try level 
-	lea ecx, [esi+esi*2]
-	mov eax, [edi+ecx*4]
-	mov [ebx+12], eax
-
-	; Call except handler 
-	call dword ptr [edi+ecx*4+8]
-
-except_continue2:
-	; Reload try level and except again 
-	mov edi, [ebx+8]
-	lea ecx, [esi+esi*2]
-	mov esi, [edi+ecx*4]
-	jmp except_loop2
-
-except_dismiss2:
-	; Dismiss it 
-	mov eax, 0
-	jmp except_return2
-
-except_search2:
-	; Continue searching 
-	mov eax, 1
-	jmp except_return2
-
-	; Do local unwind 
-except_unwind2:
-	push ebp
-	mov ebp, [ebx+16]
-	push -1
-	push ebx
-	call __local_unwind2
-	add esp, 8
-
-	; Retore EBP and set return disposition 
-	pop ebp
-	mov eax, 1
-
-except_return2:
-	; Restore registers and stack 
-	pop ebp
-	pop edi
-	pop esi
-	pop ebx
-	mov esp, ebp
-	pop ebp
-	ret
-
 
 __except_handler3:
 
