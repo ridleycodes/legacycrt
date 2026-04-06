@@ -22,10 +22,46 @@ void CRT_USED _pei386_runtime_relocator(void) {}
 #endif /* defined(__i386) || defined(__i386__) || defined(_M_IX86) */
 #endif /* __GNUC__ */
 
+/* GS and SEH support */
+#if defined(__i386) || defined(__i386__) || defined(_M_IX86)
+typedef unsigned int UINT_PTR;
+#else /* defined(__i386) || defined(__i386__) || defined(_M_IX86) */
+typedef unsigned __int64 UINT_PTR;
+#endif /* defined(__i386) || defined(__i386__) || defined(_M_IX86) */
+#define DEFAULT_SECURITY_COOKIE 0xBB40E64E
+UINT_PTR __security_cookie = DEFAULT_SECURITY_COOKIE;
+extern __declspec(dllimport) unsigned long __stdcall GetTickCount(void);
+extern __declspec(dllimport) unsigned long __stdcall GetCurrentProcessId(void);
+extern __declspec(dllimport) unsigned long __stdcall GetCurrentThreadId(void);
+void __cdecl __security_init_cookie(void) {
+    UINT_PTR cookie;
+    
+    if (__security_cookie != DEFAULT_SECURITY_COOKIE) {
+        return;
+    }
+
+    cookie = GetTickCount() ^ GetCurrentProcessId() ^ GetCurrentThreadId();
+    
+    if (cookie == DEFAULT_SECURITY_COOKIE) {
+        cookie = DEFAULT_SECURITY_COOKIE + 1;
+    }
+    
+    __security_cookie = cookie;
+}
+extern __declspec(dllimport) void __stdcall ExitProcess(unsigned int status);
+void __fastcall __security_check_cookie(UINT_PTR cookie) {
+    if (cookie != __security_cookie) {
+        ExitProcess(255); 
+    }
+}
+
 /*-------DLL ENTRY POINT------*/
 #ifdef __LEGACY_CRT_CRT_IS_DLL
 extern int __stdcall DllMain(void* hinstDLL, unsigned long fdwReason, void* lpReserved);
-int CRT_USED __stdcall DllMainCRTStartup(void* hinstDLL, unsigned long fdwReason, void* lpReserved) {    
+int CRT_USED __stdcall DllMainCRTStartup(void* hinstDLL, unsigned long fdwReason, void* lpReserved) {
+    if (fdwReason == 1 /* DLL_PROCESS_ATTACH */) {
+        __security_init_cookie();
+    }
     return DllMain(hinstDLL, fdwReason, lpReserved);
 }
 #else /* __LEGACY_CRT_CRT_IS_DLL */
@@ -46,7 +82,8 @@ void CRT_USED __cdecl wmainCRTStartup(void) {
     wchar_t** argv;
     wchar_t** envp;
     int err = 0;
-
+    
+    __security_init_cookie();
     __wgetmainargs(&argc, &argv, &envp, 0, &err);
 
     err = wmain(argc, argv);
@@ -67,7 +104,8 @@ void CRT_USED __cdecl wmainCRTStartup(void) {
     int argc;
     wchar_t** argv;
     int err;
-
+    
+    __security_init_cookie();
     argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
     err = wmain(argc, argv);
@@ -94,6 +132,7 @@ void CRT_USED __cdecl mainCRTStartup(void) {
     char** envp;
     int err;
 
+    __security_init_cookie();
     MAINARGS_CALL(&argc, &argv, &envp, 0, &err);
 
     err = main(argc, argv);
@@ -108,7 +147,6 @@ extern int __stdcall wWinMain(void* hInstance, void* hPrevInstance, wchar_t* lpC
 extern __declspec(dllimport) void* __stdcall GetModuleHandleW(const wchar_t* lpModuleName);
 extern __declspec(dllimport) wchar_t* __stdcall GetCommandLineW(void);
 extern __declspec(dllimport) void __stdcall GetStartupInfoW(void* lpStartupInfo);
-extern __declspec(dllimport) void __stdcall ExitProcess(unsigned int status);
 #ifdef __GNUC__
 /* GNUC: startup symbol is always non-unicode */
 void CRT_USED __cdecl WinMainCRTStartup(void) {
@@ -140,6 +178,8 @@ void CRT_USED __cdecl wWinMainCRTStartup(void) {
         void* hStdOutput;
         void* hStdError;
     } startupInfo;
+    
+    __security_init_cookie();
 
     hInstance = GetModuleHandleW(0);
     lpszCommandLine = GetCommandLineW();
@@ -195,6 +235,8 @@ void CRT_USED __cdecl WinMainCRTStartup(void) {
         void* hStdOutput;
         void* hStdError;
     } startupInfo;
+
+    __security_init_cookie();
 
     hInstance = GetModuleHandleA(0);
     lpszCommandLine = GetCommandLineA();

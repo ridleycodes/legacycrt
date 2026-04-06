@@ -1,13 +1,14 @@
 .386
 .model flat
 EXTERN _RtlUnwind@16:PROC
-
+EXTERN ___security_cookie:DWORD
 
 PUBLIC __global_unwind2
 PUBLIC __local_unwind2
 PUBLIC __abnormal_termination
 PUBLIC __except_handler2
 PUBLIC __except_handler3
+PUBLIC __except_handler4
 
 .code
 ASSUME FS:NOTHING
@@ -404,6 +405,153 @@ except_unwind3:
 	mov eax, 1
 
 except_return3:
+	; Restore registers and stack 
+	pop ebp
+	pop edi
+	pop esi
+	pop ebx
+	mov esp, ebp
+	pop ebp
+	ret
+
+__except_handler4:
+	; Setup stack and save volatiles 
+	push ebp
+	mov ebp, esp
+	sub esp, 8
+	push ebx
+	push esi
+	push edi
+	push ebp
+
+	; Clear direction flag 
+	cld
+
+	; Get exception registration and record 
+	mov ebx, [ebp+12]
+	mov eax, [ebp+8]
+
+	; Check if this is an unwind 
+	test dword ptr [eax+4], 6
+	jnz except_unwind4
+
+	; Save exception pointers structure 
+	mov [ebp-8], eax
+	mov eax, [ebp+16]
+	mov [ebp-4], eax
+	lea eax, [ebp-8]
+	mov [ebx-4], eax
+
+	; Get the try level and scope table 
+	mov esi, [ebx+12]
+	mov edi, [ebx+8]
+	
+	; Decode ScopeTable and skip 16-byte header
+	xor edi, ___security_cookie
+	add edi, 16
+
+except_loop4:
+	; Validate try level 
+	cmp esi, -1
+	je except_search4
+
+	; Check if this is the termination handler 
+	lea ecx, [esi+esi*2]
+	mov eax, [edi+ecx*4+4]
+	or eax, eax
+	jz except_continue4
+
+	; Save registers clear them all 
+	push esi
+	push ebp
+	lea ebp, [ebx+16]
+	xor ebx, ebx
+	xor ecx, ecx
+	xor edx, edx
+	xor esi, esi
+	xor edi, edi
+
+	; Call the filter and restore our registers 
+	call eax
+	pop ebp
+	pop esi
+
+	; Restore ebx and check the result 
+	mov ebx, [ebp+12]
+	or eax, eax
+	jz except_continue4
+	js except_dismiss4
+
+	; So this is an accept, call the termination handlers 
+	mov edi, [ebx+8]
+	
+	; Recalculate decoded ScopeTable for termination dispatch
+	xor edi, ___security_cookie
+	add edi, 16
+
+	push ebx
+	call __global_unwind2
+	add esp, 4
+
+	; Restore ebp 
+	lea ebp, [ebx+16]
+
+	; Do local unwind 
+	push esi
+	push ebx
+	call __local_unwind2
+	add esp, 8
+
+	; Set new try level 
+	lea ecx, [esi+esi*2]
+	mov eax, [edi+ecx*4]
+	mov [ebx+12], eax
+
+	; Clear registers and call except handler 
+	mov eax, [edi+ecx*4+8]
+	xor ebx, ebx
+	xor ecx, ecx
+	xor edx, edx
+	xor esi, esi
+	xor edi, edi
+	call eax
+
+except_continue4:
+	; Reload try level and except again 
+	mov edi, [ebx+8]
+	
+	; Recalculate decoded ScopeTable for continue loop
+	xor edi, ___security_cookie
+	add edi, 16
+	
+	lea ecx, [esi+esi*2]
+	mov esi, [edi+ecx*4]
+	jmp except_loop4
+
+except_dismiss4:
+	; Dismiss it 
+	mov eax, 0
+	jmp except_return4
+
+except_search4:
+	; Continue searching 
+	mov eax, 1
+	jmp except_return4
+
+	; Do local unwind 
+except_unwind4:
+	push ebp
+	mov ebp, [ebx+16]
+	push -1
+	push ebx
+	call __local_unwind2
+	add esp, 8
+
+	; Retore EBP and set return disposition 
+	pop ebp
+	mov eax, 1
+
+except_return4:
 	; Restore registers and stack 
 	pop ebp
 	pop edi

@@ -1,5 +1,6 @@
 LIBRARY msvcrt.dll
 EXPORTS
+	__C_specific_handler 	;x64 only
 	_CIacos
 	_CIasin
 	_CIatan

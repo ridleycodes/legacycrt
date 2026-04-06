@@ -157,9 +157,7 @@ FUNCTION(__LEGACY_CRT_ADD_CRT_LIBRARY CRT_SRC_LOCATION)
     SET(CRT_SEH "")
     IF(TARGET_ARCH STREQUAL "X86")
         IF(MSVC)
-            IF(LEGACY_CRT_USE_OLD_CRT)
-                SET(CRT_SEH "${CRT_SRC_LOCATION}/seh.obj")
-            ENDIF(LEGACY_CRT_USE_OLD_CRT)
+            SET(CRT_SEH "${CRT_SRC_LOCATION}/seh.obj")
             SET(CRT_MATH "${CRT_SRC_LOCATION}/lldiv.obj" 
                          "${CRT_SRC_LOCATION}/lldvrm.obj" 
                          "${CRT_SRC_LOCATION}/llmul.obj" 
